@@ -47,22 +47,24 @@ func handleConn(conn net.Conn) {
 	wg.Add(2)
 	go func() {
 		for {
-			_, err := io.Copy(dial, conn)
-			if err != nil {
-				log.Println("conn-dial error:",err)
+			n, err := io.Copy(dial, conn)
+			if err != nil|| n == 0 {
+				log.Println("conn-dial error:", err)
 				break
 			}
+			log.Println("conn-dial n:", n)
 		}
 		log.Println("连接结束1")
 		wg.Done()
 	}()
 	go func() {
 		for {
-			_, err := io.Copy(conn, dial)
-			if err != nil {
-				log.Println("dial-conn error:",err)
+			n, err := io.Copy(conn, dial)
+			if err != nil || n == 0 {
+				log.Println("dial-conn error:", err)
 				break
 			}
+			log.Println("dial-conn n:", n)
 		}
 		log.Println("连接结束2")
 		wg.Done()
@@ -70,3 +72,4 @@ func handleConn(conn net.Conn) {
 	wg.Wait()
 	log.Println("连接结束")
 }
+
