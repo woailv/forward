@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+//适用于mysql远程客户端, 不适用于http
 func main() {
 	listen, err := net.Listen("tcp", value.ADDR)
 	util.ErrFatal(err)
@@ -32,44 +33,28 @@ func main() {
 
 var im = &v.IntMux{}
 
-func handleConn(conn net.Conn) {
+func handleConn(from net.Conn) {
 	im.Inc()
-	defer conn.Close()
+	defer from.Close()
 	defer im.Dec()
 
-	dial, err := net.Dial("tcp", value.TO_ADDR)
+	to, err := net.Dial("tcp", value.TO_ADDR)
 	if err != nil {
 		return
 	}
-	defer dial.Close()
+	defer to.Close()
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+
 	go func() {
-		for {
-			n, err := io.Copy(dial, conn)
-			if err != nil|| n == 0 {
-				log.Println("conn-dial error:", err)
-				break
-			}
-			log.Println("conn-dial n:", n)
-		}
-		log.Println("连接结束1")
+		io.Copy(to, from)
 		wg.Done()
 	}()
 	go func() {
-		for {
-			n, err := io.Copy(conn, dial)
-			if err != nil || n == 0 {
-				log.Println("dial-conn error:", err)
-				break
-			}
-			log.Println("dial-conn n:", n)
-		}
-		log.Println("连接结束2")
+		io.Copy(from, to)
 		wg.Done()
 	}()
 	wg.Wait()
-	log.Println("连接结束")
 }
 
