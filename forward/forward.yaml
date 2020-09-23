@@ -1,0 +1,7 @@
+mapping:
+  - 9988: 3306
+  - 10000: 8089
+use_ip_white: true
+ip_white:
+  - ::1
+  - 127.0.0.1
